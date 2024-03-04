@@ -8,18 +8,19 @@ from ngd import NGD
 from torch.optim import SGD
 
 # Set random seed for reproducibility
-torch.manual_seed(42)
-np.random.seed(42)
+seed = 42
+torch.manual_seed(seed)
+np.random.seed(seed)
 
-@click.command()
-@click.option('--bop', default='max', help='Binary operation.')
-@click.option('--num_samples', default=1000, help='Input Size.')
-@click.option('--model_type', default='simple', help='Neural network.')
-@click.option('--loss_type', default='mse', help='Loss type.')
-@click.option('--num_epochs', default=100, help='Number of epochs.')
-@click.option('--pullback', default=True, help='Use metric pullback.')
-@click.option('--lr', default=0.01, help='Learning rate.')
-def train(bop, num_samples, model_type, loss_type, num_epochs, pullback, lr):
+# @click.command()
+# @click.option('--bop', default='max', help='Binary operation.')
+# @click.option('--num_samples', default=1000, help='Input Size.')
+# @click.option('--model_type', default='simple', help='Neural network.')
+# @click.option('--loss_type', default='mse', help='Loss type.')
+# @click.option('--num_epochs', default=100, help='Number of epochs.')
+# @click.option('--pullback', default=True, help='Use metric pullback.')
+# @click.option('--lr', default=0.01, help='Learning rate.')
+def train(bop, num_samples, model_type, loss_type, num_epochs, pullback, lr, logger=None):
     input_size = 2
     X = torch.randn(num_samples, input_size)
     if bop == 'max':
@@ -50,6 +51,16 @@ def train(bop, num_samples, model_type, loss_type, num_epochs, pullback, lr):
                 G.append(dp @ dp.T)
 
         loss = criterion(pred_y, y)
+        if logger is not None:
+            logger.log_hyperparams({'bop': bop,
+                                        'num_samples': num_samples,
+                                        'model_type': model_type,
+                                        'loss_type': loss_type,
+                                        'num_epochs': num_epochs,
+                                        'pullback': pullback,
+                                        'lr':lr})
+            logger.log_metrics({'loss': loss, 
+                                'epoch' : epoch})
         optimizer.zero_grad()
         loss.backward()
         if pullback:
@@ -59,6 +70,9 @@ def train(bop, num_samples, model_type, loss_type, num_epochs, pullback, lr):
         
         if (epoch + 1) % 10 == 0:
             print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}')
+    
+    if logger is not None:
+        logger.save()
 
 if __name__ == '__main__':
     train()

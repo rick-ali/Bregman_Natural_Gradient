@@ -14,5 +14,5 @@ class BregmanMetric():
 
 class SquaredMetric(BregmanMetric):
     def hessian(self, p, q):
-        return torch.full_like(p, 2.)
+        return torch.full_like(p, 1.)
     
