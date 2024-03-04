@@ -39,18 +39,21 @@ def train(bop, num_samples, model_type, loss_type, num_epochs, pullback, lr):
     for epoch in range(num_epochs):
         pred_y = model(X)
         if pullback:
-            hessian = torch.mean(metric(pred_y, y)).view(1, 1)
-            f_x = torch.sum(pred_y) / len(pred_y)
+            hessian = metric(pred_y, y)
+            hessian_sqrt = hessian ** 0.5
+            f_x = torch.sum(pred_y * hessian_sqrt) / len(pred_y) ** 0.5
             optimizer.zero_grad()
             f_x.backward(retain_graph=True)
-            df_dw = [param.data 
-                    for param in model.parameters()]
+            G = []
+            for param in model.parameters():
+                dp = param.data.view(-1, 1)
+                G.append(dp @ dp.T)
 
         loss = criterion(pred_y, y)
         optimizer.zero_grad()
         loss.backward()
         if pullback:
-            optimizer.step(metric=hessian, df_dw=df_dw)
+            optimizer.step(metric=G)
         else:
             optimizer.step()
         

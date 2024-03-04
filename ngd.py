@@ -14,10 +14,9 @@ class NGD(optim.SGD):
                 for i, param in enumerate(param_group['params']):
                     if param.grad is None:
                         continue 
-                    df_dw[i] = df_dw[i].view(-1, 1)
-                    G = df_dw[i] @ metric @ df_dw[i].T
-                    G = G + zeta * torch.eye(len(G))
-                    G_inv = torch.inverse(G)
+                    G = metric[i]
+                    G_ = G + zeta * torch.eye(len(G))
+                    G_inv = torch.inverse(G_)
                     dp = G_inv @ param.grad.view(-1, 1)
                     param.grad = dp.view(param.grad.shape)
             super(NGD, self).step(closure)
