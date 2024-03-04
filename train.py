@@ -1,4 +1,3 @@
-import click
 import torch 
 import numpy as np
 from torch import nn
@@ -7,44 +6,38 @@ from metrics import SquaredMetric
 from ngd import NGD
 from torch.optim import SGD
 
-# Set random seed for reproducibility
-seed = 42
-torch.manual_seed(seed)
-np.random.seed(seed)
-
-# @click.command()
-# @click.option('--bop', default='max', help='Binary operation.')
-# @click.option('--num_samples', default=1000, help='Input Size.')
-# @click.option('--model_type', default='simple', help='Neural network.')
-# @click.option('--loss_type', default='mse', help='Loss type.')
-# @click.option('--num_epochs', default=100, help='Number of epochs.')
-# @click.option('--pullback', default=True, help='Use metric pullback.')
-# @click.option('--lr', default=0.01, help='Learning rate.')
-def train(bop, num_samples, model_type, loss_type, num_epochs, pullback, lr, logger=None):
+def train(accelerator, config, logger=None):
     input_size = 2
-    X = torch.randn(num_samples, input_size)
-    if bop == 'max':
+    X = torch.randn(config.num_samples, input_size)
+    if config.bop == 'max':
         y, _ = torch.max(X,dim=1)
-    if model_type == 'simple':
+    if config.model_type == 'simple':
         model = SimpleMLP(input_size=input_size, 
                           output_size=1,
-                          hidden_size=100)
-    if loss_type == 'mse':
+                          hidden_size=10)
+    if config.loss_type == 'mse':
         criterion = nn.MSELoss()
         metric = SquaredMetric()
-    if pullback:
-        optimizer = NGD(model.parameters(), lr=lr)
+    if config.pullback:
+        optimizer = NGD(model.parameters(), lr=config.lr)
     else:
-        optimizer = SGD(model.parameters(), lr=lr)
+        optimizer = SGD(model.parameters(), lr=config.lr)
     
-    for epoch in range(num_epochs):
-        pred_y = model(X)
-        if pullback:
+    device = accelerator.device
+    X = X.to(device)
+    y = y.to(device)
+    model.to(device)
+    model, optimizer = accelerator.prepare(model, optimizer)
+
+    for epoch in range(config.num_epochs):
+        pred_y = model(X).view(-1)
+        if config.pullback:
             hessian = metric(pred_y, y)
             hessian_sqrt = hessian ** 0.5
             f_x = torch.sum(pred_y * hessian_sqrt) / len(pred_y) ** 0.5
             optimizer.zero_grad()
-            f_x.backward(retain_graph=True)
+            # f_x.backward(retain_graph=True)
+            accelerator.backward(f_x, retain_graph=True)
             G = []
             for param in model.parameters():
                 dp = param.data.view(-1, 1)
@@ -52,24 +45,24 @@ def train(bop, num_samples, model_type, loss_type, num_epochs, pullback, lr, log
 
         loss = criterion(pred_y, y)
         if logger is not None:
-            logger.log_hyperparams({'bop': bop,
-                                        'num_samples': num_samples,
-                                        'model_type': model_type,
-                                        'loss_type': loss_type,
-                                        'num_epochs': num_epochs,
-                                        'pullback': pullback,
-                                        'lr':lr})
+            logger.log_hyperparams({'bop': config.bop,
+                                        'num_samples': config.num_samples,
+                                        'model_type': config.model_type,
+                                        'loss_type': config.loss_type,
+                                        'num_epochs': config.num_epochs,
+                                        'pullback': config.pullback,
+                                        'lr': config.lr})
             logger.log_metrics({'loss': loss, 
                                 'epoch' : epoch})
         optimizer.zero_grad()
-        loss.backward()
-        if pullback:
-            optimizer.step(metric=G)
-        else:
-            optimizer.step()
+        # loss.backward()
+        accelerator.backward(loss)
+        if config.pullback:
+            optimizer.defaults['metric'] = G
+        optimizer.step()
         
         if (epoch + 1) % 10 == 0:
-            print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}')
+            print(f'Epoch [{epoch + 1}/{config.num_epochs}], Loss: {loss.item():.4f}')
     
     if logger is not None:
         logger.save()
