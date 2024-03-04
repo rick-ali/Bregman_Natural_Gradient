@@ -1,5 +1,14 @@
 from train import train
-from configs import MaxMSERegConfig, MaxMSEPullConfig
+from configs import (
+    MaxMSERegConfig,
+    MaxMSEPullConfig,
+    AddMSERegConfig,
+    AddMSEPullConfig,
+    SubMSERegConfig,
+    SubMSEPullConfig,
+    UnitBCERegConfig,
+    UnitBCEPullConfig,
+)
 from lightning.pytorch.loggers import CSVLogger
 from accelerate import Accelerator
 import torch
@@ -9,8 +18,16 @@ import numpy as np
 def experiment():
     seeds = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
     accelerator = Accelerator()
-    configs = [MaxMSERegConfig(), MaxMSEPullConfig()]
-
+    configs = [
+        MaxMSERegConfig(),
+        MaxMSEPullConfig(),
+        AddMSERegConfig(),
+        AddMSEPullConfig(),
+        SubMSERegConfig(),
+        SubMSEPullConfig(),
+        UnitBCERegConfig(),
+        UnitBCEPullConfig(),
+    ]
     for config in configs:
         for seed in seeds:
             # Set random seed for reproducibility

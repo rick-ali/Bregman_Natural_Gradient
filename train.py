@@ -1,7 +1,7 @@
 import torch
 from torch import nn
-from models import SimpleMLP
-from metrics import SquaredMetric
+from models import SimpleMLP, BinaryMLP
+from metrics import SquaredMetric, BCEMetric
 from ngd import NGD
 from torch.optim import SGD
 
@@ -10,8 +10,23 @@ def train(accelerator, config, logger=None):
     X = torch.randn(config.num_samples, config.input_dim)
     if config.bop == "max":
         y, _ = torch.max(X, dim=1)
+    if config.bop == "add":
+        y = X[:, 0] + X[:, 1]
+    if config.bop == "sub":
+        y = X[:, 0] - X[:, 1]
+    if config.bop == "unit":
+        y = X[:, 0] ** 2 + X[:, 1] ** 2
+        y = y < 1
+        y = y.float()
+
     if config.model_type == "simple":
         model = SimpleMLP(
+            input_size=config.input_dim,
+            output_size=config.output_dim,
+            hidden_size=config.hidden_dim,
+        )
+    if config.model_type == "binary":
+        model = BinaryMLP(
             input_size=config.input_dim,
             output_size=config.output_dim,
             hidden_size=config.hidden_dim,
@@ -19,6 +34,9 @@ def train(accelerator, config, logger=None):
     if config.loss_type == "mse":
         criterion = nn.MSELoss()
         metric = SquaredMetric()
+    if config.loss_type == "bce":
+        criterion = nn.BCELoss()
+        metric = BCEMetric()
     if config.pullback:
         optimizer = NGD(model.parameters(), lr=config.lr)
     else:
@@ -63,12 +81,9 @@ def train(accelerator, config, logger=None):
             optimizer.defaults["metric"] = G
         optimizer.step()
 
-        if (epoch + 1) % 10 == 0:
+        if (epoch + 1) % 100 == 0:
             print(f"Epoch [{epoch + 1}/{config.num_epochs}], Loss: {loss.item():.4f}")
 
     if logger is not None:
         logger.save()
 
-
-if __name__ == "__main__":
-    train()
