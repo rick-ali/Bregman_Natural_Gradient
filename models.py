@@ -1,8 +1,4 @@
-import torch
 import torch.nn as nn
-import numpy as np
-from ngd import NGD
-from metrics import SquaredMetric
 
 # Define a simple MLP model
 class SimpleMLP(nn.Module):
