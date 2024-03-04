@@ -7,14 +7,13 @@ from ngd import NGD
 from torch.optim import SGD
 
 def train(accelerator, config, logger=None):
-    input_size = 2
-    X = torch.randn(config.num_samples, input_size)
+    X = torch.randn(config.num_samples, config.input_dim)
     if config.bop == 'max':
         y, _ = torch.max(X,dim=1)
     if config.model_type == 'simple':
-        model = SimpleMLP(input_size=input_size, 
-                          output_size=1,
-                          hidden_size=10)
+        model = SimpleMLP(input_size=config.input_dim, 
+                          output_size=config.output_dim,
+                          hidden_size=config.hidden_dim)
     if config.loss_type == 'mse':
         criterion = nn.MSELoss()
         metric = SquaredMetric()
