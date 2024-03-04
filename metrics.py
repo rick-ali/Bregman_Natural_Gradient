@@ -1,7 +1,8 @@
 import torch
 
+
 # bregman metrics
-class BregmanMetric():
+class BregmanMetric:
     def __init__(self, **kwargs):
         pass
 
@@ -11,7 +12,7 @@ class BregmanMetric():
     def hessian(self, p, q):
         pass
 
+
 class SquaredMetric(BregmanMetric):
     def hessian(self, p, q):
-        return torch.full_like(p, 1.)
-    
+        return torch.full_like(p, 1.0)

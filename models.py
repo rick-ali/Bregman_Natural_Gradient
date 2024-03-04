@@ -1,5 +1,6 @@
 import torch.nn as nn
 
+
 # Define a simple MLP model
 class SimpleMLP(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
@@ -9,7 +10,7 @@ class SimpleMLP(nn.Module):
             nn.ReLU(),
             nn.Linear(hidden_size, hidden_size),
             nn.ReLU(),
-            nn.Linear(hidden_size, output_size)
+            nn.Linear(hidden_size, output_size),
         )
 
     def forward(self, x):
