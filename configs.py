@@ -21,7 +21,7 @@ class MaxMSERegConfig:
 
 
 class MaxMSEPullConfig:
-    name = "maxmsereg"
+    name = "maxmsepull"
     # function to learn
     bop = "max"
     # training hyperparams
