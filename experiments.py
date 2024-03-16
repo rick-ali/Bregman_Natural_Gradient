@@ -1,14 +1,19 @@
 from train import train
 from configs import (
-    MaxMSERegConfig,
+    MaxMSESGDConfig,
+    MaxMSEAdamConfig,
     MaxMSEPullConfig,
-    AddMSERegConfig,
+    AddMSESGDConfig,
+    AddMSEAdamConfig,
     AddMSEPullConfig,
-    SubMSERegConfig,
+    SubMSESGDConfig,
+    SubMSEAdamConfig,
     SubMSEPullConfig,
-    UnitBCERegConfig,
+    UnitBCESGDConfig,
+    UnitBCEAdamConfig,
     UnitBCEPullConfig,
-    UnitKLRegConfig,
+    UnitKLSGDConfig,
+    UnitKLAdamConfig,
     UnitKLPullConfig,
 )
 from lightning.pytorch.loggers import CSVLogger
@@ -19,18 +24,21 @@ import numpy as np
 
 def experiment():
     seeds = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
-    accelerator = Accelerator()
     configs = [
-        MaxMSERegConfig(),
-        MaxMSEPullConfig(),
-        AddMSERegConfig(),
-        AddMSEPullConfig(),
-        SubMSERegConfig(),
-        SubMSEPullConfig(),
-        # UnitBCERegConfig(),
+        # MaxMSESGDConfig(),
+        # MaxMSEAdamConfig(),
+        # MaxMSEPullConfig(),
+        # AddMSESGDConfig(),
+        # AddMSEAdamConfig(),
+        # AddMSEPullConfig(),
+        # SubMSESGDConfig(),
+        # SubMSEAdamConfig(),
+        # SubMSEPullConfig(),
+        # UnitBCESGDConfig(),
         # UnitBCEPullConfig(),
-        # UnitKLRegConfig(),
-        # UnitKLPullConfig(),
+        UnitKLSGDConfig(),
+        UnitKLAdamConfig(),
+        UnitKLPullConfig(),
     ]
     for config in configs:
         for seed in seeds:
@@ -38,7 +46,8 @@ def experiment():
             torch.manual_seed(seed)
             np.random.seed(seed)
             logger = CSVLogger("logs", name="{}_seed_{}".format(config.name, seed))
-            train(config=config, logger=logger, accelerator=accelerator)
+            device = torch.device('cpu')
+            train(config=config, device=device, logger=logger)
 
 
 if __name__ == "__main__":

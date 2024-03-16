@@ -3,10 +3,10 @@ from torch import nn
 from models import SimpleMLP, BinaryMLP
 from metrics import SquaredMetric, BCEMetric
 from ngd import NGD
-from torch.optim import SGD
+from torch.optim import SGD, Adam
 
 
-def train(accelerator, config, logger=None):
+def train(config, device, logger=None):
     X = torch.randn(config.num_samples, config.input_dim)
     if config.bop == "max":
         y, _ = torch.max(X, dim=1)
@@ -37,36 +37,36 @@ def train(accelerator, config, logger=None):
     if config.loss_type == "bce":
         criterion = nn.BCELoss()
         metric = BCEMetric()
-    if config.pullback:
-        optimizer = NGD(model.parameters(), lr=config.lr)
-    else:
-        optimizer = SGD(model.parameters(), lr=config.lr)
 
-    device = accelerator.device
+    if config.optimizer == 'ngd':
+        optimizer = NGD(model.parameters(), lr=config.lr)
+    elif config.optimizer == 'sgd':
+        optimizer = SGD(model.parameters(), lr=config.lr)
+    elif config.optimizer == 'adam':
+        optimizer = Adam(model.parameters(), lr=config.lr)
+
     X = X.to(device)
     y = y.to(device)
     model.to(device)
-    model, optimizer = accelerator.prepare(model, optimizer)
 
     for epoch in range(config.num_epochs):
         pred_y = model(X).view(-1)
-        if config.pullback:
+        if config.optimizer == 'ngd':
             hessian = metric(pred_y, y) 
             G = []
             for i, param in enumerate(model.parameters()):
                 n = torch.numel(param)
-                G.append(torch.zeros(n, n, device=accelerator.device))
+                G.append(torch.zeros(n, n, device=device))
 
             for x in range(len(X)):
                 optimizer.zero_grad()
-                accelerator.backward(pred_y[x], retain_graph=True)
+                pred_y[x].backward(retain_graph=True)
                 # pred_y[x].backward(retain_graph=True)
                 for i, param in enumerate(model.parameters()):
                     dp = param.grad.view(-1, 1)
                     G[i] += (hessian[x] * dp @ dp.T)
             for i, param in enumerate(model.parameters()):
                     G[i] /= len(X)    
-            print(epoch)
         
         loss = criterion(pred_y, y)
         if logger is not None:
@@ -77,14 +77,14 @@ def train(accelerator, config, logger=None):
                     "model_type": config.model_type,
                     "loss_type": config.loss_type,
                     "num_epochs": config.num_epochs,
-                    "pullback": config.pullback,
+                    "optimizer": config.optimizer,
                     "lr": config.lr,
                 }
             )
             logger.log_metrics({"loss": loss, "epoch": epoch})
         optimizer.zero_grad()
-        accelerator.backward(loss)
-        if config.pullback:
+        loss.backward()
+        if config.optimizer == 'ngd':
             optimizer.defaults["metric"] = G
         optimizer.step()
 

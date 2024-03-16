@@ -23,10 +23,12 @@ def plot_reg_pull_diff(path, name, version):
             df = pd.read_csv(
                 path + folder + "/" + "version_{}".format(version) + "/" + "metrics.csv"
             )[["epoch", "loss"]]
-            if "reg" in folder:
-                df = df.assign(grad="reg")
+            if "sgd" in folder:
+                df = df.assign(grad="sgd")
             elif "pull" in folder:
                 df = df.assign(grad="pull")
+            elif "adam" in folder:
+                df = df.assign(grad="adam")
             if data is None:
                 data = df
             else:
