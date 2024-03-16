@@ -8,6 +8,8 @@ from configs import (
     SubMSEPullConfig,
     UnitBCERegConfig,
     UnitBCEPullConfig,
+    UnitKLRegConfig,
+    UnitKLPullConfig,
 )
 from lightning.pytorch.loggers import CSVLogger
 from accelerate import Accelerator
@@ -25,8 +27,10 @@ def experiment():
         AddMSEPullConfig(),
         SubMSERegConfig(),
         SubMSEPullConfig(),
-        UnitBCERegConfig(),
-        UnitBCEPullConfig(),
+        # UnitBCERegConfig(),
+        # UnitBCEPullConfig(),
+        # UnitKLRegConfig(),
+        # UnitKLPullConfig(),
     ]
     for config in configs:
         for seed in seeds:

@@ -23,3 +23,8 @@ class BCEMetric(BregmanMetric):
         hessian[q == 0] = p[q == 0] ** -2
         hessian[q == 1] = (1 - p[q == 1]) ** -2
         return hessian
+
+class KLMetric(BregmanMetric):
+    def hessian(self, p, q):
+        hessian = 1 / p + 1 / (1 - p)
+        return hessian

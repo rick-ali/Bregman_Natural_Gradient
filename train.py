@@ -51,16 +51,23 @@ def train(accelerator, config, logger=None):
     for epoch in range(config.num_epochs):
         pred_y = model(X).view(-1)
         if config.pullback:
-            hessian = metric(pred_y, y)
-            hessian_sqrt = hessian**0.5
-            f_x = torch.sum(pred_y * hessian_sqrt) / len(pred_y) ** 0.5
-            optimizer.zero_grad()
-            accelerator.backward(f_x, retain_graph=True)
+            hessian = metric(pred_y, y) 
             G = []
-            for param in model.parameters():
-                dp = param.data.view(-1, 1)
-                G.append(dp @ dp.T)
+            for i, param in enumerate(model.parameters()):
+                n = torch.numel(param)
+                G.append(torch.zeros(n, n, device=accelerator.device))
 
+            for x in range(len(X)):
+                optimizer.zero_grad()
+                accelerator.backward(pred_y[x], retain_graph=True)
+                # pred_y[x].backward(retain_graph=True)
+                for i, param in enumerate(model.parameters()):
+                    dp = param.grad.view(-1, 1)
+                    G[i] += (hessian[x] * dp @ dp.T)
+            for i, param in enumerate(model.parameters()):
+                    G[i] /= len(X)    
+            print(epoch)
+        
         loss = criterion(pred_y, y)
         if logger is not None:
             logger.log_hyperparams(

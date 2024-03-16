@@ -15,7 +15,7 @@ class NGD(optim.SGD):
             nesterov=nesterov,
         )
 
-    def step(self, closure=None, zeta=0.1):
+    def step(self, closure=None, zeta=1e-4):
         if "metric" not in self.defaults:
             super(NGD, self).step(closure)
         else:
