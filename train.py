@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 from models import SimpleMLP, BinaryMLP
-from metrics import SquaredMetric, BCEMetric
+from metrics import SquaredMetric, BCEMetric, KLMetric
 from ngd import NGD
 from torch.optim import SGD, Adam
 
@@ -37,7 +37,9 @@ def train(config, device, logger=None):
     if config.loss_type == "bce":
         criterion = nn.BCELoss()
         metric = BCEMetric()
-
+    if config.loss_type == "kl":
+        criterion = nn.KLDivLoss()
+        metric = KLMetric()
     if config.optimizer == 'ngd':
         optimizer = NGD(model.parameters(), lr=config.lr)
     elif config.optimizer == 'sgd':
@@ -68,7 +70,12 @@ def train(config, device, logger=None):
             for i, param in enumerate(model.parameters()):
                     G[i] /= len(X)    
         
-        loss = criterion(pred_y, y)
+        if config.loss_type == 'kl':
+            log_pred = torch.log(pred_y)
+            loss = criterion(log_pred, y)
+        else:
+            loss = criterion(pred_y, y)
+            
         if logger is not None:
             logger.log_hyperparams(
                 {
