@@ -60,13 +60,16 @@ def train(config, device, logger=None):
                 n = torch.numel(param)
                 G.append(torch.zeros(n, n, device=device))
 
+            # comment out
+            # log_pred_y = torch.log(pred_y)
             for x in range(len(X)):
                 optimizer.zero_grad()
+                # log_pred_y[x].backward(retain_graph=True)
                 pred_y[x].backward(retain_graph=True)
-                # pred_y[x].backward(retain_graph=True)
                 for i, param in enumerate(model.parameters()):
                     dp = param.grad.view(-1, 1)
                     G[i] += (hessian[x] * dp @ dp.T)
+                    # G[i] += dp @ dp.T
             for i, param in enumerate(model.parameters()):
                     G[i] /= len(X)    
         
@@ -75,7 +78,7 @@ def train(config, device, logger=None):
             loss = criterion(log_pred, y)
         else:
             loss = criterion(pred_y, y)
-            
+
         if logger is not None:
             logger.log_hyperparams(
                 {
