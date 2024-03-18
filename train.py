@@ -56,6 +56,7 @@ def train(config, device, logger=None):
     if config.optimizer == 'ngd':
         assert config.loss_type == 'kl'
 
+    print(type(optimizer))
     for epoch in range(config.num_epochs):
         pred_y = model(X).view(-1)
         if config.optimizer == 'ngd':
@@ -101,7 +102,9 @@ def train(config, device, logger=None):
        
             for i, param in enumerate(model.parameters()):
                     G[i] /= len(X)       
-        
+            print(G[1])
+            quit()
+
         if config.loss_type == 'kl':
             log_pred = torch.log(pred_y)
             loss = criterion(log_pred, y)
