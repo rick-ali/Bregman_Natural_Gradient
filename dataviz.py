@@ -25,8 +25,10 @@ def plot_reg_pull_diff(path, name, version):
             )[["epoch", "loss"]]
             if "sgd" in folder:
                 df = df.assign(grad="sgd")
-            elif "pull" in folder:
-                df = df.assign(grad="pull")
+            elif "ngd" in folder:
+                df = df.assign(grad="ngd")
+            elif "bgd" in folder:
+                df = df.assign(grad="bgd (ours)")
             elif "adam" in folder:
                 df = df.assign(grad="adam")
             if data is None:

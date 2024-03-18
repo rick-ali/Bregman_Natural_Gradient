@@ -15,7 +15,7 @@ class BregmanMetric:
 
 class SquaredMetric(BregmanMetric):
     def hessian(self, p, q):
-        return torch.full_like(p, 1.0)
+        return torch.ones(len(p), 1, 1, device=p.device)
         # return p - q
 
 class BCEMetric(BregmanMetric):
@@ -28,6 +28,9 @@ class BCEMetric(BregmanMetric):
 class KLMetric(BregmanMetric):
     def hessian(self, p, q):
         # hessian = 1 / p ** 2
-        hessian = 1/p
-        hessian = 1 + torch.log(p)
+        hessian = torch.zeros(len(p), 2, 2, device=p.device)
+        hessian[:,0,0] = 1/p
+        hessian[:,1,1] = 1/(1-p)
+        
+        # hessian[:,0,0] = 1 + torch.log(p)
         return hessian

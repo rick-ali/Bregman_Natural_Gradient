@@ -2,11 +2,11 @@ import torch
 import torch.optim as optim
 
 
-class NGD(optim.SGD):
+class MetricGD(optim.SGD):
     def __init__(
         self, params, lr=0.01, momentum=0, dampening=0, weight_decay=0, nesterov=False
     ):
-        super(NGD, self).__init__(
+        super(MetricGD, self).__init__(
             params,
             lr=lr,
             momentum=momentum,
@@ -17,7 +17,7 @@ class NGD(optim.SGD):
 
     def step(self, closure=None, zeta=1e-4):
         if "metric" not in self.defaults:
-            super(NGD, self).step(closure)
+            super(MetricGD, self).step(closure)
         else:
             # Perform some custom logic before calling the base class's step method
             for param_group in self.param_groups:
@@ -29,4 +29,4 @@ class NGD(optim.SGD):
                     G_inv = torch.inverse(G_)
                     dp = G_inv @ param.grad.view(-1, 1)
                     param.grad = dp.view(param.grad.shape)
-            super(NGD, self).step(closure)
+            super(MetricGD, self).step(closure)

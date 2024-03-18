@@ -2,19 +2,23 @@ from train import train
 from configs import (
     MaxMSESGDConfig,
     MaxMSEAdamConfig,
-    MaxMSEPullConfig,
+    MaxMSEBGDConfig,
+
     AddMSESGDConfig,
     AddMSEAdamConfig,
-    AddMSEPullConfig,
+    AddMSEBGDConfig,
+
     SubMSESGDConfig,
     SubMSEAdamConfig,
-    SubMSEPullConfig,
-    UnitBCESGDConfig,
-    UnitBCEAdamConfig,
-    UnitBCEPullConfig,
+    SubMSEBGDConfig,
+
+    # UnitBCESGDConfig,
+    # UnitBCEAdamConfig,
+    # UnitBCEPullConfig,
     UnitKLSGDConfig,
     UnitKLAdamConfig,
-    UnitKLPullConfig,
+    UnitKLNGDConfig,
+    UnitKLBGDConfig,
 )
 from lightning.pytorch.loggers import CSVLogger
 from accelerate import Accelerator
@@ -27,10 +31,10 @@ def experiment():
     configs = [
         # MaxMSESGDConfig(),
         # MaxMSEAdamConfig(),
-        # MaxMSEPullConfig(),
-        AddMSESGDConfig(),
-        AddMSEAdamConfig(),
-        AddMSEPullConfig(),
+        # MaxMSEBGDConfig(),
+        # AddMSESGDConfig(),
+        # AddMSEAdamConfig(),
+        # AddMSEPullConfig(),
         # SubMSESGDConfig(),
         # SubMSEAdamConfig(),
         # SubMSEPullConfig(),
@@ -38,7 +42,8 @@ def experiment():
         # UnitBCEPullConfig(),
         # UnitKLSGDConfig(),
         # UnitKLAdamConfig(),
-        # UnitKLPullConfig(),
+        UnitKLBGDConfig(),
+        # UnitKLNGDConfig()
     ]
     for config in configs:
         for seed in seeds:
