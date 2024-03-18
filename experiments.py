@@ -29,21 +29,21 @@ import numpy as np
 def experiment():
     seeds = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
     configs = [
-        # MaxMSESGDConfig(),
-        # MaxMSEAdamConfig(),
-        # MaxMSEBGDConfig(),
-        # AddMSESGDConfig(),
-        # AddMSEAdamConfig(),
-        # AddMSEPullConfig(),
-        # SubMSESGDConfig(),
-        # SubMSEAdamConfig(),
-        # SubMSEPullConfig(),
+        MaxMSESGDConfig(),
+        MaxMSEAdamConfig(),
+        MaxMSEBGDConfig(),
+        AddMSESGDConfig(),
+        AddMSEAdamConfig(),
+        AddMSEBGDConfig(),
+        SubMSESGDConfig(),
+        SubMSEAdamConfig(),
+        SubMSEBGDConfig(),
         # UnitBCESGDConfig(),
         # UnitBCEPullConfig(),
-        UnitKLSGDConfig(),
+        # UnitKLSGDConfig(),
         UnitKLAdamConfig(),
         UnitKLBGDConfig(),
-        # UnitKLNGDConfig()
+        UnitKLNGDConfig()
     ]
     for config in configs:
         for seed in seeds:
