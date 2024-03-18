@@ -40,8 +40,8 @@ def experiment():
         # SubMSEPullConfig(),
         # UnitBCESGDConfig(),
         # UnitBCEPullConfig(),
-        # UnitKLSGDConfig(),
-        # UnitKLAdamConfig(),
+        UnitKLSGDConfig(),
+        UnitKLAdamConfig(),
         UnitKLBGDConfig(),
         # UnitKLNGDConfig()
     ]

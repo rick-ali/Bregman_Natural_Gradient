@@ -56,7 +56,6 @@ def train(config, device, logger=None):
     if config.optimizer == 'ngd':
         assert config.loss_type == 'kl'
 
-    print(type(optimizer))
     for epoch in range(config.num_epochs):
         pred_y = model(X).view(-1)
         if config.optimizer == 'ngd':
@@ -93,17 +92,13 @@ def train(config, device, logger=None):
                 pred_y[x].backward(retain_graph=True)
                 for i, param in enumerate(model.parameters()):
                     dp = param.grad.view(-1, 1)
-                    # if config.loss_type == 'kl':
-                    #     dp = torch.hstack([dp, dp])
-                    # print(hessian[x].shape)
-                    # print(dp.shape)
-                    # G[i] += (dp @ hessian[x] @ dp.T)
-                    G[i] += (1/pred_y[x] * dp @ dp.T)
+                    if config.loss_type == 'kl':
+                        dp = torch.hstack([dp, -dp])
+                    G[i] += (dp @ hessian[x] @ dp.T)
+                    # G[i] += (1/pred_y[x] * dp @ dp.T)
        
             for i, param in enumerate(model.parameters()):
                     G[i] /= len(X)       
-            print(G[1])
-            quit()
 
         if config.loss_type == 'kl':
             log_pred = torch.log(pred_y)
@@ -126,7 +121,7 @@ def train(config, device, logger=None):
             logger.log_metrics({"loss": loss, "epoch": epoch})
         optimizer.zero_grad()
         loss.backward()
-        if config.optimizer == 'ngd':
+        if config.optimizer == 'ngd' or config.optimizer == 'bgd':
             optimizer.defaults["metric"] = G
         optimizer.step()
 

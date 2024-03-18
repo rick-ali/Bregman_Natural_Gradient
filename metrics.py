@@ -32,5 +32,6 @@ class KLMetric(BregmanMetric):
         hessian[:,0,0] = 1/p
         hessian[:,1,1] = 1/(1-p)
         
-        # hessian[:,0,0] = 1 + torch.log(p)
+        # hessian[:,0,0] = p ** 2
+        # hessian[:,1,1] = 0
         return hessian

@@ -1,6 +1,7 @@
 import pandas as pd
 import seaborn as sns
 from os import listdir
+import os
 import click
 import matplotlib.pyplot as plt
 
@@ -20,9 +21,10 @@ def plot_reg_pull_diff(path, name, version):
         if name in folder:
             _, seed = folder.split("_seed_")
             seed = int(seed)
-            df = pd.read_csv(
-                path + folder + "/" + "version_{}".format(version) + "/" + "metrics.csv"
-            )[["epoch", "loss"]]
+            data_path =  path + folder + "/" + "version_{}".format(version) + "/" + "metrics.csv"
+            if not os.path.isfile(data_path):
+                continue
+            df = pd.read_csv(data_path)[["epoch", "loss"]]
             if "sgd" in folder:
                 df = df.assign(grad="sgd")
             elif "ngd" in folder:
