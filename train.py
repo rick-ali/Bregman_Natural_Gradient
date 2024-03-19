@@ -4,7 +4,8 @@ from models import SimpleMLP, BinaryMLP
 from metrics import SquaredMetric, BCEMetric, KLMetric
 from ngd import MetricGD
 from torch.optim import SGD, Adam
-
+from torch.nn.utils import stateless
+import functorch as F 
 
 def train(config, device, logger=None):
     X = torch.randn(config.num_samples, config.input_dim)
@@ -53,32 +54,55 @@ def train(config, device, logger=None):
     y = y.to(device)
     model.to(device)
 
-    if config.optimizer == 'ngd':
-        assert config.loss_type == 'kl'
 
     for epoch in range(config.num_epochs):
         pred_y = model(X).view(-1)
         if config.optimizer == 'ngd':
-            G = []
-            for i, param in enumerate(model.parameters()):
-                n = torch.numel(param)
-                G.append(torch.zeros(n, n, device=device))
+            if config.optimizer == 'mse':
+                G = []
+                for i, param in enumerate(model.parameters()):
+                    n = torch.numel(param)
+                    G.append(torch.zeros(n, n, device=device))
+                
+                names = list(n for n, _ in model.named_parameters())
 
-            log_pred_y = torch.log(pred_y)
-            log_pred_1my = torch.log(1 - pred_y)
-            for x in range(len(X)):
-                optimizer.zero_grad()
-                log_pred_y[x].backward(retain_graph=True)
+                for x in range(len(X)):
+                    # Define loss function
+                    def loss(params):
+                        y_hat = stateless.functional_call(model, {n: p for n, p in zip(names, params)}, X[x])
+                        return ((y_hat - y[x])**2).mean()
+
+                    # Calculate Hessian
+                    optimizer.zero_grad()
+                    hessian_func = F.hessian(loss)
+                    H = hessian_func(tuple(model.parameters()))
+                    for i, param in enumerate(model.parameters()):
+                        n = torch.numel(param)
+                        G[i] += H[i][i].view(n, n)
+
                 for i, param in enumerate(model.parameters()):
-                    dp = param.grad.view(-1, 1)
-                    G[i] += pred_y[x] * dp @ dp.T
-                optimizer.zero_grad()
-                log_pred_1my[x].backward(retain_graph=True)
+                        G[i] /= len(X) 
+            elif config.optimizer == 'kl':
+                G = []
                 for i, param in enumerate(model.parameters()):
-                    dp = param.grad.view(-1, 1)
-                    G[i] += (1 - pred_y[x]) * dp @ dp.T
-            for i, param in enumerate(model.parameters()):
-                    G[i] /= len(X) 
+                    n = torch.numel(param)
+                    G.append(torch.zeros(n, n, device=device))
+
+                log_pred_y = torch.log(pred_y)
+                log_pred_1my = torch.log(1 - pred_y)
+                for x in range(len(X)):
+                    optimizer.zero_grad()
+                    log_pred_y[x].backward(retain_graph=True)
+                    for i, param in enumerate(model.parameters()):
+                        dp = param.grad.view(-1, 1)
+                        G[i] += pred_y[x] * dp @ dp.T
+                    optimizer.zero_grad()
+                    log_pred_1my[x].backward(retain_graph=True)
+                    for i, param in enumerate(model.parameters()):
+                        dp = param.grad.view(-1, 1)
+                        G[i] += (1 - pred_y[x]) * dp @ dp.T
+                for i, param in enumerate(model.parameters()):
+                        G[i] /= len(X) 
         
         elif config.optimizer == 'bgd':
             hessian = metric(pred_y, y) 

@@ -56,6 +56,24 @@ class MaxMSEBGDConfig:
     hidden_dim = 10
 
 @dataclass
+class MaxMSENGDConfig:
+    name = "maxmsengd"
+    # function to learn
+    bop = "max"
+    # training hyperparams
+    num_samples = 1000
+    loss_type = "mse"
+    lr = 0.01
+    num_epochs = 100
+    optimizer = 'ngd'
+    # static architecture
+    input_dim = 2
+    output_dim = 1
+    # dynamic architecture
+    model_type = "simple"
+    hidden_dim = 10
+
+@dataclass
 class AddMSESGDConfig:
     name = "addmsesgd"
     # function to learn

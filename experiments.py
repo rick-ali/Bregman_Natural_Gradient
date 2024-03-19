@@ -3,6 +3,7 @@ from configs import (
     MaxMSESGDConfig,
     MaxMSEAdamConfig,
     MaxMSEBGDConfig,
+    MaxMSENGDConfig,
 
     AddMSESGDConfig,
     AddMSEAdamConfig,
@@ -31,19 +32,20 @@ def experiment():
     configs = [
         MaxMSESGDConfig(),
         MaxMSEAdamConfig(),
-        MaxMSEBGDConfig(),
-        AddMSESGDConfig(),
-        AddMSEAdamConfig(),
-        AddMSEBGDConfig(),
-        SubMSESGDConfig(),
-        SubMSEAdamConfig(),
-        SubMSEBGDConfig(),
+        # MaxMSEBGDConfig(),
+        MaxMSENGDConfig(),
+        # AddMSESGDConfig(),
+        # AddMSEAdamConfig(),
+        # AddMSEBGDConfig(),
+        # SubMSESGDConfig(),
+        # SubMSEAdamConfig(),
+        # SubMSEBGDConfig(),
         # UnitBCESGDConfig(),
         # UnitBCEPullConfig(),
         # UnitKLSGDConfig(),
-        UnitKLAdamConfig(),
-        UnitKLBGDConfig(),
-        UnitKLNGDConfig()
+        # UnitKLAdamConfig(),
+        # UnitKLBGDConfig(),
+        # UnitKLNGDConfig()
     ]
     for config in configs:
         for seed in seeds:
