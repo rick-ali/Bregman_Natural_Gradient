@@ -19,6 +19,10 @@ from configs import (
     UnitKLAdamConfig,
     UnitKLNGDConfig,
     UnitKLBGDConfig,
+    BinAdd8MSEBGDConfig,
+    BinAdd8MSESGDConfig,
+    BinAdd8KLBGDConfig,
+    BinAdd8KLNGDConfig
 )
 from lightning.pytorch.loggers import CSVLogger
 from accelerate import Accelerator
@@ -27,23 +31,28 @@ import numpy as np
 
 
 def experiment():
-    seeds = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+    seeds = [10]
+             #, 20, 30, 40, 50, 60, 70, 80, 90, 100]
     configs = [
-        MaxMSESGDConfig(),
-        MaxMSEAdamConfig(),
-        MaxMSEBGDConfig(),
-        AddMSESGDConfig(),
-        AddMSEAdamConfig(),
-        AddMSEBGDConfig(),
-        SubMSESGDConfig(),
-        SubMSEAdamConfig(),
-        SubMSEBGDConfig(),
+        #MaxMSESGDConfig(),
+        #MaxMSEAdamConfig(),
+        #MaxMSEBGDConfig(),
+        #AddMSESGDConfig(),
+        #AddMSEAdamConfig(),
+        #AddMSEBGDConfig(),
+        #SubMSESGDConfig(),
+        #SubMSEAdamConfig(),
+        #SubMSEBGDConfig(),
         # UnitBCESGDConfig(),
         # UnitBCEPullConfig(),
         # UnitKLSGDConfig(),
-        UnitKLAdamConfig(),
-        UnitKLBGDConfig(),
-        UnitKLNGDConfig()
+        #UnitKLAdamConfig(),
+        #UnitKLBGDConfig(),
+        #UnitKLNGDConfig(),
+        #BinAdd8MSEBGDConfig(),
+        #BinAdd8MSESGDConfig(),
+        BinAdd8KLNGDConfig(),
+        BinAdd8KLBGDConfig()
     ]
     for config in configs:
         for seed in seeds:

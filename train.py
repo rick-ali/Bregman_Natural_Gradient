@@ -4,6 +4,8 @@ from models import SimpleMLP, BinaryMLP
 from metrics import SquaredMetric, BCEMetric, KLMetric
 from ngd import MetricGD
 from torch.optim import SGD, Adam
+import complexity as complexity
+import numpy as np
 
 
 def train(config, device, logger=None):
@@ -18,6 +20,11 @@ def train(config, device, logger=None):
         y = X[:, 0] ** 2 + X[:, 1] ** 2
         y = y < 1
         y = y.float()
+
+    if config.bop == "binadd":
+        X= (torch.rand(config.num_samples, config.input_dim) < 0.5).type(torch.float32) 
+        y= (X.sum(dim=1)%2).float() + +1e-3
+        x_test = complexity.generate_test_space(config.input_dim)    
 
     if config.model_type == "simple":
         model = SimpleMLP(
@@ -106,6 +113,13 @@ def train(config, device, logger=None):
         else:
             loss = criterion(pred_y, y)
 
+        with torch.no_grad():
+            pred = model(x_test).round()  
+            s = ((np.array(pred.flatten())).astype(np.int32)) 
+            t = ''.join(map(str,s))
+            c = complexity.lz_complexity(t)
+            print(c)    
+
         if logger is not None:
             logger.log_hyperparams(
                 {
@@ -118,7 +132,7 @@ def train(config, device, logger=None):
                     "lr": config.lr,
                 }
             )
-            logger.log_metrics({"loss": loss, "epoch": epoch})
+            logger.log_metrics({"loss": loss, "epoch": epoch, "lz": c})
         optimizer.zero_grad()
         loss.backward()
         if config.optimizer == 'ngd' or config.optimizer == 'bgd':

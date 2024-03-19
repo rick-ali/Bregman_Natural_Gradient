@@ -272,3 +272,75 @@ class UnitKLBGDConfig:
     # dynamic architecture
     model_type = "binary"
     hidden_dim = 10
+
+@dataclass
+class BinAdd8MSEBGDConfig:
+    name = "binaddmsebgd"
+    # function to learn
+    bop = "binadd"
+    # training hyperparams
+    num_samples = 100
+    loss_type = "mse"
+    lr = 0.01
+    num_epochs = 500
+    optimizer = 'bgd'
+    # static architecture
+    input_dim = 8
+    output_dim = 1
+    # dynamic architecture
+    model_type = "simple"
+    hidden_dim = 10    
+
+@dataclass
+class BinAdd8MSESGDConfig:
+    name = "binadd8msesgd"
+    # function to learn
+    bop = "binadd"
+    # training hyperparams
+    num_samples = 100
+    loss_type = "mse"
+    lr = 0.01
+    num_epochs = 80000
+    optimizer = 'sgd'
+    # static architecture
+    input_dim = 8
+    output_dim = 1
+    # dynamic architecture
+    model_type = "simple"
+    hidden_dim = 10      
+
+@dataclass
+class BinAdd8KLBGDConfig:
+    name = "binaddklbgd"
+    # function to learn
+    bop = "binadd"
+    # training hyperparams
+    num_samples = 100
+    loss_type = "kl"
+    lr = 0.01
+    num_epochs = 1000
+    optimizer = 'bgd'
+    # static architecture
+    input_dim = 8
+    output_dim = 1
+    # dynamic architecture
+    model_type = "simple"
+    hidden_dim = 10    
+
+@dataclass
+class BinAdd8KLNGDConfig:
+    name = "binadd8klngd"
+    # function to learn
+    bop = "binadd"
+    # training hyperparams
+    num_samples = 100
+    loss_type = "kl"
+    lr = 0.01
+    num_epochs = 1000
+    optimizer = 'ngd'
+    # static architecture
+    input_dim = 8
+    output_dim = 1
+    # dynamic architecture
+    model_type = "simple"
+    hidden_dim = 10      
