@@ -290,3 +290,21 @@ class UnitKLBGDConfig:
     # dynamic architecture
     model_type = "binary"
     hidden_dim = 10
+
+@dataclass
+class UnitKLP2Config:
+    name = "unitklp2"
+    # function to learn
+    bop = "unit"
+    # training hyperparams
+    num_samples = 1000
+    loss_type = "kl"
+    lr = 0.01
+    num_epochs = 100
+    optimizer = 'p2'
+    # static architecture
+    input_dim = 2
+    output_dim = 1
+    # dynamic architecture
+    model_type = "binary"
+    hidden_dim = 10

@@ -4,7 +4,7 @@ from os import listdir
 import os
 import click
 import matplotlib.pyplot as plt
-
+import numpy as np
 
 @click.command()
 @click.option("--path", default="logs/", help="Folder directory.")
@@ -18,12 +18,17 @@ def plot_reg_pull_diff(path, name, version):
     folders = listdir(path)
     data = None
     hue_order = set()
+    losses = {'sgd': [],
+                'bgd': [],
+                'adam': []}
+    if 'unit' in name:
+        losses['ngd'] = []
     for folder in folders:
-        if 'test' in folder:
+        if 'train' in folder:
+            continue
+        if 'p2' in folder:
             continue
         if name in folder:
-            if 'p2' in folder:
-                continue
             task = ''
             tasks = ['max', 'sub', 'add', 'unit']
             for task_ in tasks:
@@ -34,33 +39,23 @@ def plot_reg_pull_diff(path, name, version):
             data_path =  path + folder + "/" + "version_{}".format(version) + "/" + "metrics.csv"
             if not os.path.isfile(data_path):
                 continue
-            df = pd.read_csv(data_path)[["epoch", "loss"]]
-            if "sgd" in folder:
-                hue_order.add('sgd')
-                df = df.assign(grad="sgd")
-            elif "ngd" in folder:
-                hue_order.add('ngd')
-                df = df.assign(grad="fim")
-            elif "bgd" in folder:
-                hue_order.add('bgd')
-                df = df.assign(grad="bgd")
-            elif "adam" in folder:
-                hue_order.add('adam')
-                df = df.assign(grad="adam")
-            elif "p2" in folder:
-                hue_order.add('p^2')
-                df = df.assign(grad="p^2")
-            if data is None:
-                data = df
+            if "kl" in folder:
+                df = pd.read_csv(data_path)["accuracy"]
             else:
-                data = pd.concat([data, df])
-
-    sns.set_theme(style="darkgrid")
-    hue_order = sorted(list(hue_order))
-    if 'ngd' in hue_order:
-        hue_order = ["adam", "bgd", "sgd", "ngd"]
-    sns.lineplot(x="epoch", y="loss", hue="grad", hue_order=hue_order, data=data).set_title(f'{task}')
-    plt.show()
+                df = pd.read_csv(data_path)["loss"]
+            
+            if "sgd" in folder:
+                losses['sgd'].append(df[0])
+            elif "ngd" in folder:
+               losses['ngd'].append(df[0])
+            elif "bgd" in folder:
+               losses['bgd'].append(df[0])
+            elif "adam" in folder:
+               losses['adam'].append(df[0])
+    
+    for method in losses:
+        vals = np.array(losses[method])
+        print(f'method: {method} mean {np.mean(vals):.4}+{np.std(vals):.4}')
 
 
 if __name__ == "__main__":

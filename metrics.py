@@ -27,11 +27,15 @@ class BCEMetric(BregmanMetric):
 
 class KLMetric(BregmanMetric):
     def hessian(self, p, q):
-        # hessian = 1 / p ** 2
         hessian = torch.zeros(len(p), 2, 2, device=p.device)
         hessian[:,0,0] = 1/p
         hessian[:,1,1] = 1/(1-p)
-        
-        # hessian[:,0,0] = p ** 2
-        # hessian[:,1,1] = 0
+        return hessian
+
+
+class KLMetric_p2(BregmanMetric):
+    def hessian(self, p, q):
+        hessian = torch.zeros(len(p), 2, 2, device=p.device)
+        hessian[:,0,0] = 1 + 1/p
+        hessian[:,1,1] = 1 + 1/(1-p)
         return hessian
